@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: finora-db-dev
+    environment:
+      POSTGRES_USER: finora
+      POSTGRES_PASSWORD: finora123
+      POSTGRES_DB: finora
+    ports:
+      - "5432:5432"
+    volumes:
+      - finora_pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finora -d finora"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: finora-backend-dev
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://finora:finora123@db:5432/finora
+      JWT_SECRET: dev-secret-change-in-production
+      PORT: 5000
+      NODE_ENV: development
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - finora_backend_node_modules:/app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: finora-frontend-dev
+    depends_on:
+      - backend
+    environment:
+      VITE_PROXY_TARGET: http://backend:5000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - finora_frontend_node_modules:/app/node_modules
+
+volumes:
+  finora_pgdata_dev:
+  finora_backend_node_modules:
+  finora_frontend_node_modules:
