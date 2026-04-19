@@ -32,6 +32,20 @@ docker compose -f docker-compose.dev.yml down
 
 ## Option 2: Cloud (Render + Vercel)
 
+### Fast fix for Prisma P1012 on Render
+
+If you see `Environment variable not found: DATABASE_URL`, deploy backend using the `render.yaml` Blueprint in this repo.
+This auto-connects `DATABASE_URL` from Render Postgres.
+
+Steps:
+
+1. In Render: New + > Blueprint
+2. Select this GitHub repository
+3. Render will create:
+	- `finora-db` (Postgres)
+	- `finora-backend` (Web Service)
+4. Deploy
+
 ## Backend on Render
 
 1. Create a Render Web Service from this repo.
@@ -57,11 +71,15 @@ NODE_ENV=production
 PORT=5000
 ```
 
+Note: Prisma needs `DATABASE_URL` during build, so this variable must be added on the backend service before deploying.
+
 6. Run migration once in Render shell:
 
 ```bash
 npx prisma migrate deploy
 ```
+
+If Render still errors, redeploy the backend with **Clear build cache and deploy**.
 
 ## Frontend on Vercel
 
